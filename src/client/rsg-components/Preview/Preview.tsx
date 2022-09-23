@@ -1,9 +1,9 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import ReactDOM from 'react-dom';
 import PlaygroundError from 'rsg-components/PlaygroundError';
 import ReactExample from 'rsg-components/ReactExample';
 import Context, { StyleGuideContextContents } from 'rsg-components/Context';
+import { createRoot, Root } from 'react-dom/client';
 
 const improveErrorMessage = (message: string) =>
 	message.replace(
@@ -27,7 +27,7 @@ export default class Preview extends Component<PreviewProps, PreviewState> {
 	};
 	public static contextType = Context;
 
-	private mountNode: Element | null = null;
+	private root: Root | null = null;
 
 	public state: PreviewState = {
 		error: null,
@@ -59,8 +59,8 @@ export default class Preview extends Component<PreviewProps, PreviewState> {
 	}
 
 	public unmountPreview() {
-		if (this.mountNode) {
-			ReactDOM.unmountComponentAtNode(this.mountNode);
+		if (this.root) {
+			this.root.unmount();
 		}
 	}
 
@@ -86,7 +86,9 @@ export default class Preview extends Component<PreviewProps, PreviewState> {
 		window.requestAnimationFrame(() => {
 			// this.unmountPreview();
 			try {
-				ReactDOM.render(wrappedComponent, this.mountNode);
+				if (this.root) {
+					this.root.render(wrappedComponent);
+				}
 			} catch (err) {
 				/* istanbul ignore next: it is near-impossible to trigger a sync error from ReactDOM.render */
 				if (err instanceof Error) {
@@ -107,11 +109,17 @@ export default class Preview extends Component<PreviewProps, PreviewState> {
 		console.error(err); // eslint-disable-line no-console
 	};
 
+	private createReactRoot(ref: HTMLDivElement | null) {
+		if (ref && !this.root) {
+			this.root = createRoot(ref);
+		}
+	}
+
 	public render() {
 		const { error } = this.state;
 		return (
 			<>
-				<div data-testid="mountNode" ref={(ref) => (this.mountNode = ref)} />
+				<div data-testid="mountNode" ref={(ref) => this.createReactRoot(ref)} />
 				{error && <PlaygroundError message={error} />}
 			</>
 		);

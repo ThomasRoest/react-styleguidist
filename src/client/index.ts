@@ -1,7 +1,7 @@
 /* eslint-disable import/first */
 import './polyfills';
 import './styles';
-import ReactDOM from 'react-dom';
+import { createRoot, Root } from 'react-dom/client';
 import renderStyleguide from './utils/renderStyleguide';
 import { getParameterByName, hasInHash, getHash } from './utils/handleHash';
 
@@ -33,14 +33,18 @@ const scrollToOrigin = () => {
 	}
 };
 
-const render = () => {
-	// eslint-disable-next-line @typescript-eslint/no-var-requires
-	const styleguide = require('!!../loaders/styleguide-loader!./index.js');
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const styleguide = require('!!../loaders/styleguide-loader!./index.js');
 
-	ReactDOM.render(
-		renderStyleguide(styleguide, codeRevision),
-		document.getElementById(styleguide.config.mountPointId)
-	);
+const container = document.getElementById(styleguide.config.mountPointId);
+let root: Root;
+
+if (container) {
+	root = createRoot(container);
+}
+
+const render = () => {
+	root.render(renderStyleguide(styleguide, codeRevision));
 };
 
 window.addEventListener('hashchange', render);
